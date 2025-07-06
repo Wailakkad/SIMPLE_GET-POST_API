@@ -8,8 +8,15 @@ const { connectDB } = require('./DataConfig/db');
 const routes = require('./routes/Route');
 
 dotenv.config();
-
-connectDB(); // Connect to MongoDB Atlas
+console.log('📦 Loaded env:', {
+  MONGO_URI: process.env.MONGO_URI ? '[OK]' : '[MISSING]',
+});
+connectDB()
+  .then(() => console.log('✅ Mongo connected'))
+  .catch((err) => {
+    console.error('❌ MongoDB connection error:', err.message);
+    process.exit(1); // stop execution so we don't hit broken handlers
+});
 
 const app = express();
 app.use(cors());
@@ -18,6 +25,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Your API routes
 app.use('/api/v1/items', routes);
+app.get('/hello', (req, res) => {
+  res.status(200).json({ ok: true });
+});
 
 
-module.exports.handler = serverless(app);
+module.exports = serverless(app);
