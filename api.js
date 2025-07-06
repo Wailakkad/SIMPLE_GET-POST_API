@@ -14,9 +14,10 @@ console.log('📦 Loaded env:', {
 connectDB()
   .then(() => console.log('✅ Mongo connected'))
   .catch((err) => {
-    console.error('❌ MongoDB connection error:', err.message);
-    process.exit(1); // stop execution so we don't hit broken handlers
-});
+    console.error('❌ MongoDB connection error:', err); // <‑‑ dump the whole error
+    // DO NOT call process.exit here in serverless
+  });
+
 
 const app = express();
 app.use(cors());
