@@ -1,16 +1,24 @@
+// DataConfig/db.js
 const mongoose = require('mongoose');
 
-
-
-const connectDB = async () => {
-    try{
-          await mongoose.connect(process.env.MONGO_URI)
-          console.log('MongoDB connected successfully');
-
-    }catch (error) {
-        console.error('Error connecting to MongoDB:', error);
-        process.exit(1); // Exit the process with failure
-    }
+// Use a global variable so the connection is reused on warm invocations
+let cached = global.mongoose;
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
 }
 
-module.exports = { connectDB };
+async function connectDB() {
+  if (cached.conn) return cached.conn;          // ✅ reuse
+
+  if (!cached.promise) {
+    cached.promise = mongoose
+      .connect(process.env.MONGO_URI, {
+        bufferCommands: false,
+      })
+      .then((mongoose) => mongoose.connection);
+  }
+  cached.conn = await cached.promise;
+  return cached.conn;
+}
+
+module.exports = connectDB;
